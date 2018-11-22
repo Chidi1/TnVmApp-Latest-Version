@@ -1,0 +1,287 @@
+﻿/*
+------------------------
+Main Stylesheet
+Remarks: Sola
+-----------------------*/
+
+/* RESET CSS */
+
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* HTML5 display-role reset for older browsers */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+body {
+    line-height: 1;
+    /* height: 100%;
+    width: 100%; */
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+.row {
+    width: 100%;
+    height: 100%;
+}
+
+.right-div {
+    height: 100%;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+    blockquote:before,
+    blockquote:after,
+    q:before,
+    q:after {
+        content: '';
+        content: none;
+    }
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* TABLE OF CONTENTS
+| * General
+*/
+
+/* General */
+
+.modal-checkin .modal-footer {
+    border-top: 0px;
+}
+
+/*video*/
+
+.main {
+    background: url(../img/background.jpeg) no-repeat center center;
+    background-size: cover;
+    float: left;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+/* .logo-holder {
+    width: 70%;
+    margin: 0 auto;
+}
+ */
+
+
+.logo-holder img {
+    max-width: 50%;
+    display: block;
+    height: auto;
+    margin: 0 auto;
+}
+
+.right-icons {
+    height: 100%;
+}
+
+.checkin-checkout {
+    margin-top: 60%;
+}
+
+    .checkin-checkout .trigger {
+        cursor: pointer;
+        transition: all .4s ease;
+    }
+
+.trigger {
+    width: 80%;
+    height: 100%;
+    margin: 10% auto;
+}
+
+.checkin-checkout h4 {
+    font-size: 2em;
+    font-family: segoe UI;
+}
+
+.checkin-checkout hr {
+    border-color: #dcdcdc;
+    width: 90%;
+    margin: 0 auto;
+}
+/* Forms */
+/*FormOne */
+.form-wrapper {
+    margin-top: 30px;
+}
+
+.modal-checkin .modal-body {
+    background-color: #fff;
+    padding: 0px;
+    margin: 0px 30px;
+}
+
+.modal-checkin .nav-tabs.nav-justified > .active > a,
+.modal-checkin .nav-tabs.nav-justified > a:hover {
+    border-bottom: 8px solid #e60523;
+    border-radius: 0px;
+}
+
+.modal-checkin .btn {
+    border-radius: 50em;
+    background-color: #e60523;
+    color: #fff;
+}
+
+.modal-checkin .nav-tabs.nav-justified > li > a {
+    border: 0px;
+}
+/* modal color */
+.modal-title {
+    margin: 0;
+    font-size: 25px;
+    text-align: center;
+    color: #fff;
+}
+
+.modal-header {
+    background: #e60523;
+}
+/* icon color*/
+.fa {
+    color: #e60523;
+}
+
+.fa fa-check fa-5x {
+    color: #e60523;
+}
+
+.fa-5x {
+    color: #e60523;
+}
+/* close color*/
+button.close {
+    color: whitesmoke;
+}
+
+.tab-content {
+    height: 470px;
+}
+/*to hide form*/
+.show2,
+.show3 {
+    display: none;
+}

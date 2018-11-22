@@ -1,0 +1,11 @@
+﻿@{
+
+    var db = Database.Open("VmApp");
+    var sql = "SELECT Name FROM UserName WHERE Name LIKE @0";
+    var term = Request["term"] + "%";
+    var result = db.Query(sql, term);
+    var data = result.Select(p => new { label = p.Name });
+    Json.Write(data, Response.Output);
+
+
+}

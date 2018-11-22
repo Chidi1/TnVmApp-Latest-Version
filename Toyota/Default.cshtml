@@ -1,0 +1,1526 @@
+﻿
+
+@section Scripts {
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+  
+}
+
+@{
+    Layout = "_Layout.cshtml";
+    Page.Title = "Toyota Nigeria Visitors Management App";
+    
+
+    // Initialize general page variables
+    var FullName = "";
+    var EmailAddress = "";
+    var phone_number = "";
+    var address = "";
+
+    var name_of_company = "";
+    var company_name = "";
+    var whom_to_see = "";
+    string purpose = "";
+    var to_whom = "";
+    var pickCompany = "";
+    var from_where = "";
+    var name_of_event = "";
+    var message = "";
+    var mobile = "";
+    
+    var subjectLine = "";
+    //var message = Request["message"];
+
+    var errorMessage = "";
+
+
+
+
+    // Setup validation
+    Validation.RequireField("FullName", "Name cannot be blank");
+    Validation.RequireField("EmailAddress", "You must specify an EmailAddress address.");
+    //Validation.RequireField("phone_number", "phone number cannot be blank.");
+    Validation.Add("phone_number",
+        Validator.Regex(@"^\(?([0-9]{2})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{3}[-. ]?([0-9]{3}))$",
+        "Invalid format for phone number")
+        );
+    Validation.RequireField("address", "address cannot be blank.");
+    Validation.RequireField("name_of_company", "You must specify a Company.");
+
+
+    // If this is a POST request, validate and process data
+    if (IsPost)
+    {
+        //AntiForgery.Validate();
+        var db = Database.Open("VmApp");
+
+        FullName = Request.Form["FullName"];
+
+        phone_number = Request.Form["phone_number"];
+        address = Request.Form["address"];
+        EmailAddress = Request.Form["EmailAddress"];
+        name_of_company = Request.Form["name_of_company"];
+
+        purpose = Request.Form["purpose"];
+        to_whom = Request.Form["to_whom"];
+
+
+
+        from_where = Request.Form["from_where"];
+        name_of_event = Request.Form["name_of_event"];
+
+
+        pickCompany = Request.Form["pickCompany"];
+
+        company_name = Request.Form["company_name"];
+
+
+        FullName = Request["FullName"];
+  
+        phone_number = Request["phone_number"];
+        address = Request["address"];
+
+        subjectLine = Request["subjectLine"];
+
+
+        errorMessage = "";
+
+        mobile = Request.Form["mobile"];
+
+
+        //TEXTFILE func
+        //var userData = full_name /*+ "," + EmailAddress + "," + phone_number + "," + address*/ + Environment.NewLine;
+        //var dataFile = Server.MapPath("/TextFile.txt");
+        //File.AppendAllText(dataFile, userData);
+        //result = "information saved.";
+
+        // use a try catch block and send the EmailAddress
+
+
+     
+        if (Validation.IsValid())
+        {
+            //AntiForgery.Validate();
+            // Insert a new user into the database
+            message = "Successful";
+
+            // Check if user already exists
+            var users = db.QuerySingle("SELECT Name FROM UserName WHERE LOWER(Name) = LOWER(@0)", FullName);
+            if (users == null)
+            {
+
+                
+                // Insert EmailAddress into the profile table
+                var sql = "INSERT INTO UserName(Name ,phone_number,address,purpose,name_of_company,name_of_event,whom_to_see,signed_in)VALUES(@0,@1,@2,@3,@4,@5,@6,@7)";
+       
+                try
+                {
+                    // Initialize WebMail helper
+                    WebMail.SmtpServer = "smtp.office365.com";
+                    WebMail.SmtpPort = 25;
+                    WebMail.UserName = "chidi@lotusbetaanalytics.com";
+                    WebMail.Password = "4rmnigeria2$";
+                    WebMail.From = "chidi@lotusbetaanalytics.com";
+                    WebMail.EnableSsl = true;
+                    
+                    WebMail.Send(to: EmailAddress.Trim(','),
+                   subject: "Visitor Alert",
+                   body: " Hello: <br/> " + FullName + "will like to see you, and is waiting at the reception  <br/> Phone number: " +
+                   phone_number + "<br/> Address: " + address +" <br/> Purpose: " + purpose  + "<br/> Name of company: "
+                   + name_of_company.Trim(',') + " <br/> Thanks. ");
+                    
+                }
+                catch (Exception ex)
+                {
+                  
+                    errorMessage = ex.Message;
+                }
+                
+                db.Execute(sql, FullName, phone_number, address,purpose,name_of_company.Trim(','),name_of_event,whom_to_see, DateTime.Now.ToLocalTime());
+                db.Close();
+              
+            }
+            else if(IsPost)
+            {
+                var db1 = Database.Open("VmApp");
+                var meeting = "insert into General(Name,phone_number,address,purpose,name_of_company,name_of_event,whom_to_see,signed_in)values(@0,@1,@2,@3,@4,@5,@6,@7)";
+                try
+                {
+                    // Initialize WebMail helper
+                    WebMail.SmtpServer = "smtp.office365.com";
+                    WebMail.SmtpPort = 25;
+                    WebMail.UserName = "chidi@lotusbetaanalytics.com";
+                    WebMail.Password = "4rmnigeria2$";
+                    WebMail.From = "chidi@lotusbetaanalytics.com";
+                    WebMail.EnableSsl = true;
+                    
+                    WebMail.Send(to: EmailAddress.Trim(','),
+                   subject: "Visitor Alert",
+                   body: " Hello: <br/> " + FullName + " will like to see you, and is waiting at the reception  <br/> Phone number: " +
+                   phone_number + "<br/> Address: " + address + " <br/> Purpose: " + purpose + "<br/> Name of company: "
+                   + name_of_company.Trim(',') + " <br/> Thanks. ");
+
+                }
+                catch (Exception ex)
+                {
+                    // errorMessage is the message provided by the exception.
+                    errorMessage = ex.Message;
+                }
+
+
+                db1.Execute(meeting, FullName, phone_number, address, purpose, name_of_company.Trim(','), name_of_event, whom_to_see, DateTime.Now.ToLocalTime());
+
+            }
+
+
+        }
+        else
+        {
+            Validation.AddFormError("Sorry there was error in your submission");
+        }
+
+        Response.Redirect("success");
+
+    }
+
+
+
+}
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <title>Page.Title</title>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="~/Content/themes/base/autocomplete.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg"
+          crossorigin="anonymous">
+
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css">
+    <link href="~/Content/themes/base/jquery-ui.min.css" rel="stylesheet" />
+
+    <link href="~/css/style.css" rel="stylesheet" />
+    <style>
+        .ui-widget-content {
+            border: 1px solid #ddd !important;
+            background: #912b2b !important;
+            color: #333 !important;
+        }
+
+    </style>
+
+</head>
+<body>
+    @section featured{
+        <!-- Main -->
+        <div id="row">
+
+            <div class="col-md-9">
+
+                <div class="main">
+                    <div class="container">
+                        <!-- Logo Area -->
+                        <div class="logo-holder">
+                            <img src="~/img/the-logo.png" class="img-responsive" alt="logo">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 right-icons">
+                <div class="checkin-checkout">
+
+                    <div class="trigger checknew" data-toggle="modal" data-target="#myModal0">
+                        <i class="fa fa-handshake fa-4x"></i>
+                        <h4>New? Welcome</h4>
+                    </div>
+                    <hr>
+                    <div class="trigger checkin" data-toggle="modal" data-target="#myModal1">
+                        <i class="fa fa-user fa-4x"></i>
+                        <h4>Check In</h4>
+                    </div>
+                    <hr>
+
+                    <div class="trigger checkout">
+
+
+                        <a href="~/CheckOut.cshtml"><i class="fa fa-power-off fa-4x"></i><h4 style="font-size:30px;color:black">Check Out</h4></a>
+                        @*</span>*@
+                    </div>
+
+                </div>
+            </div>
+
+
+
+        </div>
+        @*</div>*@
+
+
+        <!-- Modal for New users -->
+        <!-- Modal -->
+        <div class="modal fade modal-checkin" id="myModal0" tabindex="-1" role="dialog" aria-labelledby="myModal0Label">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModal0Label">Personal Information</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- New User -->
+
+
+                        <div class="col-md-12">
+                            <div class="form-wrapper">
+                                <form class="hide-form checkin" method="post">
+
+                                    @message
+
+                                    @AntiForgery.GetHtml()
+                                    @* If at least one validation error exists, notify the user *@
+                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                    <div class="form-group">
+                                        <label for="Name" @if (!ModelState.IsValidField("FullName")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Name</label>
+                                        <input type="text" class="form-control" id="full_name" name="FullName" value="@FullName" @Validation.For("FullName") placeholder="Full Name">
+                                        @Html.ValidationMessage("FullName")
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="phone_number" @if (!ModelState.IsValidField("phone_number")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Phone no</label>
+
+                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="@phone_number" @Validation.For("phone_number")>
+                                        <span id="spnPhoneStatus"></span>
+                                        @Html.ValidationMessage("phone_number")
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="address" @if (!ModelState.IsValidField("address")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Address</label>
+                                        <input type="text" class="form-control" id="address" name="address" value="@address" @Validation.For("address")>
+                                        @Html.ValidationMessage("address")
+                                    </div>
+                                    @*dropdown for purpose*@
+                                    <div class="input-group mb-3 form-group" id="purpose">
+                                        <div class="input-group-prepend form-group">
+                                            <label for="purpose" @if (!ModelState.IsValidField("purpose")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Purpose</label>
+                                        </div>
+                                        <select class="form-control" name="purpose" id="purpose">
+
+
+                                            <option value="event"> Event</option>
+                                            <option value="Meeting">Meeting</option>
+                                            <option value="pickup"> Pickup/Delivery</option>
+                                            <option value="services"> Services/Maintenance</option>
+                                        </select>
+                                        @Html.ValidationMessage("purpose")
+                                    </div>
+
+
+
+
+                                    <div class="form-group show1">
+                                        <label for="name_of_company" @if (!ModelState.IsValidField("company_name")) { <text> class="error-label" </text> } style="color:black; font-size:25px" ;>Name of Company</label>
+                                        <input type="text" class="form-control" name="name_of_company" id="name_of_company" placeholder="Name of Company" value="@name_of_company" @Validation.For("name_of_company")>
+                                        @Html.ValidationMessage("company_name")
+                                    </div>
+
+                                    <div class="form-group show1">
+                                        <label for="Event" @if (!ModelState.IsValidField("name_of_event")) { <text> class="error-label" </text> } style="color: black; font-size:25px">Name of Event</label>
+                                        <input type="text" class="form-control" id="Event" name="name_of_event" placeholder="Name of Event" value="@name_of_event" @Validation.For("name_of_event")>
+                                        @Html.ValidationMessage("name_of_event")
+                                    </div>
+
+
+
+                                    <div class="form-group text-center show1">
+                                        <label>&nbsp;</label>
+                                        <input type="submit" name="btnInsert" class="btn btn-default" id="checkin" value="Register" />
+                                    </div>
+                                    @*Pickup/Delivery*@
+                                    <form class="show3" method="post">
+                                        @{
+
+                                        }
+                                        @AntiForgery.GetHtml()
+                                        @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                        <div class="form-group show3">
+                                            <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                            <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                            @Html.ValidationMessage("from_where")
+                                        </div>
+
+
+                                        @{
+
+                                            var toyota2 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                            var select2 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                            //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                            var DBS3 = Database.Open("VmApp").Query(select2, toyota2);
+
+
+                                            <div class="form-group show3">
+                                                <label style="color:black; font-size:25px;">Staff</label>
+                                                <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                    <option value=""></option>
+                                                    @foreach (var employee in DBS3)
+                                                    {
+                                                        <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                    }
+                                                </select>
+                                            </div>
+
+
+                                        }
+
+                                        <div class="form-group text-center show3">
+                                            <label>&nbsp;</label>
+                                            <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                        </div>
+
+                                        @*meeting*@
+                                        <form class="show2" method="post">
+
+
+                                            @AntiForgery.GetHtml()
+                                            @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+
+
+                                            <div class="form-group show2">
+                                                <label for="name_of_company" @if (!ModelState.IsValidField("name_of_company")) { <text> class="error-label" </text> } style="color: black; font-size:25px;">Name of Company</label>
+                                                <input type="text" class="form-control" name="name_of_company" id="name_of_company" value="@Request.Form["name_of_company"]" @Validation.For("name_of_company") placeholder="Name of Company">
+                                                @Html.ValidationMessage("name_of_company")
+                                            </div>
+
+                                            @{
+                                                var toyo = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                var sele = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                //var emp1 = "insert into Meeting(whom_to_see)values(@0)";
+
+                                                var DBS2 = Database.Open("VmApp").Query(sele, toyo);
+
+                                                <div class="form-group show2">
+                                                    <label style="color: black; font-size:25px;">Staff</label>
+                                                    <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                        <option value=""></option>
+                                                        @foreach (var employee in DBS2)
+                                                        {
+                                                            <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                        }
+                                                    </select>
+
+                                                </div>
+
+                                            }
+
+                                            <div class="form-group text-center show2">
+                                                <label>&nbsp;</label>
+                                                <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                            </div>
+                                            <form class="show4" method="post">
+                                                    @{
+
+                                                    }
+                                                    @AntiForgery.GetHtml()
+                                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                    <div class="form-group show4">
+                                                        <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                        <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                        @Html.ValidationMessage("from_where")
+                                                    </div>
+
+
+                                                    @{
+
+                                                        toyo = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                        sele = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                        //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                        DBS2 = Database.Open("VmApp").Query(sele, toyo);
+
+
+                                                        <div class="form-group show4">
+                                                            <label style="color:black; font-size:25px;">Staff</label>
+                                                            <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                <option value=""></option>
+                                                                @foreach (var employee in DBS2)
+                                                                {
+                                                                    <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+
+
+                                                    }
+
+                                                    <div class="form-group text-center show4">
+                                                        <label>&nbsp;</label>
+                                                        <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                    </div>
+
+
+                                                </form>
+                                             </form>
+                                        </form>
+
+                                </form>
+
+                                @*hidden part of the form*@
+
+                            </div>
+                        </div>
+                        |
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+     <!-- Modal for Login -->
+
+            <div class="modal fade modal-checkin" id="myModal1" tabindex="-1" role="dialog" aria-labelledby="myModal1Label">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModal1Label" data-dismiss="modal" data-toggle="modal" data-target="#myModal1">Check In <br> </h4>
+                        </div>
+
+                     
+
+                        <div class="modal-body">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs nav-justified" role="tablist">
+                                <li role="presentation" class="active">
+                                    <a href="#meetings" aria-controls="meetings" role="tab" data-toggle="tab">
+                                        <p><i class="fa fa-users fa-3x"></i></p>
+                                        Meetings
+                                    </a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#pickup-delivery" aria-controls="pickup-delivery" role="tab" data-toggle="tab">
+                                        <p><i class="fa fa-car  fa-3x"></i></p>
+                                        Pickup and Delivery
+                                    </a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#events" aria-controls="events" role="tab" data-toggle="tab">
+                                        <p><i class="fa fa-calendar  fa-3x"></i></p>
+                                        Events
+                                    </a>
+                                </li>
+                                <li role="presentation">
+                                <a href="#services" aria-controls="services" role="tab" data-toggle="tab">
+                                    <p><i class="fa fa-cogs  fa-3x"></i></p>
+                                    Service / Maintenance
+                                </a>
+                            </li>
+                            </ul>
+
+
+                            <!-- Tab panes -->
+                            <div class="tab-content">
+                                <!-- Meetings -->
+                                <div role="tabpanel" class="tab-pane active" id="meetings">
+
+                                    <div class="col-md-12">
+                                        <div class="form-wrapper">
+                                            <form class="hide-form checkin" method="post">
+
+                                                @message
+
+                                                @AntiForgery.GetHtml()
+                                                @* If at least one validation error exists, notify the user *@
+                                                @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                <div class="form-group .ui-autocomplete-input ">
+                                                    <label for="_name" style="color:black; font-size:25px;">Name*</label>
+                                                    <input type="search" class="form-control" name="FullName" id="_name" value="@Request.Form["FullName"]" placeholder="Type your surname and press the down arrow key" autocomplete="off">
+
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="phone_number" @if (!ModelState.IsValidField("phone_number")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Phone no</label>
+
+                                                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="@Request.Form["phone_number"]" @Validation.For("phone_number")>
+                                                    <span id="spnPhoneStatus"></span>
+                                                    @Html.ValidationMessage("phone_number")
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="address" @if (!ModelState.IsValidField("address")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Address</label>
+                                                    <input type="text" class="form-control" id="address" name="address" value="@Request.Form[""]" @Validation.For("address")>
+                                                    @Html.ValidationMessage("address")
+                                                </div>
+                                                @*dropdown for purpose*@
+                                                <div class="input-group mb-3 form-group" id="purpose">
+                                                    <div class="input-group-prepend form-group">
+                                                        <label for="purpose" @if (!ModelState.IsValidField("purpose")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Purpose</label>
+                                                    </div>
+                                                    <select class="form-control" name="purpose" id="purpose">
+
+
+                                                        <option value="event"> Event</option>
+                                                        <option value="Meeting">Meeting</option>
+                                                        <option value="pickup"> Pickup/Delivery</option>
+                                                        <option value="services"> Services/Maintenance</option>
+                                                    </select>
+                                                    @Html.ValidationMessage("purpose")
+                                                </div>
+
+
+
+
+                                                <div class="form-group show1">
+                                                    <label for="name_of_company" @if (!ModelState.IsValidField("company_name")) { <text> class="error-label" </text> } style="color:black; font-size:25px" ;>Name of Company</label>
+                                                    <input type="text" class="form-control" name="name_of_company" id="name_of_company" placeholder="Name of Company" value="@name_of_company" @Validation.For("name_of_company")>
+                                                    @Html.ValidationMessage("company_name")
+                                                </div>
+
+                                                <div class="form-group show1">
+                                                    <label for="Event" @if (!ModelState.IsValidField("name_of_event")) { <text> class="error-label" </text> } style="color: black; font-size:25px">Name of Event</label>
+                                                    <input type="text" class="form-control" id="Event" name="name_of_event" placeholder="Name of Event" value="@name_of_event" @Validation.For("name_of_event")>
+                                                    @Html.ValidationMessage("name_of_event")
+                                                </div>
+
+
+
+                                                <div class="form-group text-center show1">
+                                                    <label>&nbsp;</label>
+                                                    <input type="submit" name="btnInsert" class="btn btn-default" id="checkin" value="Register" />
+                                                </div>
+                                                @*Pickup/Delivery*@
+                                                <form class="show3" method="post">
+                                                    @{
+
+                                                    }
+                                                    @AntiForgery.GetHtml()
+                                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                    <div class="form-group show3">
+                                                        <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                        <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                        @Html.ValidationMessage("from_where")
+                                                    </div>
+
+
+                                                    @{
+
+                                                        var toyota4 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                        var select4 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                        //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                        var DBS4 = Database.Open("VmApp").Query(select4, toyota4);
+
+
+                                                        <div class="form-group show3">
+                                                            <label style="color:black; font-size:25px;">Staff</label>
+                                                            <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                <option value=""></option>
+                                                                @foreach (var employee in DBS4)
+                                                                {
+                                                                    <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+
+
+                                                    }
+
+                                                    <div class="form-group text-center show3">
+                                                        <label>&nbsp;</label>
+                                                        <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                    </div>
+                                                    @*meeting*@
+                                                    <form class="show2" method="post">
+
+
+                                                        @AntiForgery.GetHtml()
+                                                        @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+
+
+                                                        <div class="form-group show2">
+                                                            <label for="name_of_company" @if (!ModelState.IsValidField("name_of_company")) { <text> class="error-label" </text> } style="color: black; font-size:25px;">Name of Company</label>
+                                                            <input type="text" class="form-control" name="name_of_company" id="name_of_company" value="@Request.Form["name_of_company"]" @Validation.For("name_of_company") placeholder="Name of Company">
+                                                            @Html.ValidationMessage("name_of_company")
+                                                        </div>
+
+                                                        @{
+                                                            toyota4 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                            select4 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                            //var emp1 = "insert into Meeting(whom_to_see)values(@0)";
+
+                                                            DBS4 = Database.Open("VmApp").Query(select4, toyota4);
+
+                                                            <div class="form-group show2">
+                                                                <label style="color: black; font-size:25px;">Staff</label>
+                                                                <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                    <option value=""></option>
+                                                                    @foreach (var employee in DBS4)
+                                                                    {
+                                                                        <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                    }
+                                                                </select>
+
+                                                            </div>
+
+                                                        }
+
+                                                        <div class="form-group text-center show2">
+                                                            <label>&nbsp;</label>
+                                                            <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                        </div>
+                                                        <form class="show4" method="post">
+                                                            @{
+
+                                                            }
+                                                            @AntiForgery.GetHtml()
+                                                            @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                            <div class="form-group show4">
+                                                                <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                                <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                                @Html.ValidationMessage("from_where")
+                                                            </div>
+
+
+                                                            @{
+
+                                                                toyo = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                                sele = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                                //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                                DBS2 = Database.Open("VmApp").Query(sele, toyo);
+
+
+                                                                <div class="form-group show4">
+                                                                    <label style="color:black; font-size:25px;">Staff</label>
+                                                                    <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                        <option value=""></option>
+                                                                        @foreach (var employee in DBS2)
+                                                                        {
+                                                                            <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                        }
+                                                                    </select>
+                                                                </div>
+
+
+                                                            }
+
+                                                            <div class="form-group text-center show4">
+                                                                <label>&nbsp;</label>
+                                                                <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                            </div>
+
+
+                                                        </form>
+
+                                                    </form>
+                                                </form>
+
+                                            </form>
+                            }
+
+
+                                    </div>
+                                 </div>
+                            </div>
+
+                            <!-- Pickup & Delivery -->
+                            <div role="tabpanel" class="tab-pane" id="pickup-delivery">
+
+                                <div class="col-md-12">
+                                    <div class="form-wrapper">
+                                 
+
+                                        <form class="hide-form checkin" method="post">
+
+                                            @message
+
+                                            @AntiForgery.GetHtml()
+                                            @* If at least one validation error exists, notify the user *@
+                                            @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                            <div class="form-group .ui-autocomplete-input ">
+                                                <label for="_name" style="color:black; font-size:25px;">Name*</label>
+                                                <input type="search" class="form-control" name="FullName" id="_names" value="@Request.Form["FullName"]" placeholder="Type your surname and press the down arrow key" autocomplete="off">
+
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="phone_number" @if (!ModelState.IsValidField("phone_number")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Phone no</label>
+
+                                                <input type="text" class="form-control" id="phone_number" name="phone_number" value="@Request.Form["phone_number"]" @Validation.For("phone_number")>
+                                                <span id="spnPhoneStatus"></span>
+                                                @Html.ValidationMessage("phone_number")
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="address" @if (!ModelState.IsValidField("address")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Address</label>
+                                                <input type="text" class="form-control" id="address" name="address" value="@Request.Form[""]" @Validation.For("address")>
+                                                @Html.ValidationMessage("address")
+                                            </div>
+                                            @*dropdown for purpose*@
+                                            <div class="input-group mb-3 form-group" id="purpose">
+                                                <div class="input-group-prepend form-group">
+                                                    <label for="purpose" @if (!ModelState.IsValidField("purpose")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Purpose</label>
+                                                </div>
+                                                <select class="form-control" name="purpose" id="purpose">
+
+
+                                                    <option value="event"> Event</option>
+                                                    <option value="Meeting">Meeting</option>
+                                                    <option value="pickup"> Pickup/Delivery</option>
+                                                    <option value="services">Services/Maintenance</option>
+                                                </select>
+                                                @Html.ValidationMessage("purpose")
+                                            </div>
+
+
+
+
+                                            <div class="form-group show1">
+                                                <label for="name_of_company" @if (!ModelState.IsValidField("company_name")) { <text> class="error-label" </text> } style="color:black; font-size:25px" ;>Name of Company</label>
+                                                <input type="text" class="form-control" name="name_of_company" id="name_of_company" placeholder="Name of Company" value="@name_of_company" @Validation.For("name_of_company")>
+                                                @Html.ValidationMessage("company_name")
+                                            </div>
+
+                                            <div class="form-group show1">
+                                                <label for="Event" @if (!ModelState.IsValidField("name_of_event")) { <text> class="error-label" </text> } style="color: black; font-size:25px">Name of Event</label>
+                                                <input type="text" class="form-control" id="Event" name="name_of_event" placeholder="Name of Event" value="@name_of_event" @Validation.For("name_of_event")>
+                                                @Html.ValidationMessage("name_of_event")
+                                            </div>
+
+
+
+                                            <div class="form-group text-center show1">
+                                                <label>&nbsp;</label>
+                                                <input type="submit" name="btnInsert" class="btn btn-default" id="checkin" value="Register" />
+                                            </div>
+                                            @*Pickup/Delivery*@
+                                            <form class="show3" method="post">
+                                                @{
+
+                                                }
+                                                @AntiForgery.GetHtml()
+                                                @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                <div class="form-group show3">
+                                                    <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                    <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                    @Html.ValidationMessage("from_where")
+                                                </div>
+
+
+                                                @{
+
+                                                    var toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                    var select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                    //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                    var DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                    <div class="form-group show3">
+                                                        <label style="color:black; font-size:25px;">Staff</label>
+                                                        <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                            <option value=""></option>
+                                                            @foreach (var employee in DBS)
+                                                            {
+                                                                <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+
+
+                                                }
+
+                                                <div class="form-group text-center show3">
+                                                    <label>&nbsp;</label>
+                                                    <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                </div>
+                                                @*meeting*@
+                                                <form class="show2" method="post">
+
+
+                                                    @AntiForgery.GetHtml()
+                                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+
+
+                                                    <div class="form-group show2">
+                                                        <label for="name_of_company" @if (!ModelState.IsValidField("name_of_company")) { <text> class="error-label" </text> } style="color: black; font-size:25px;">Name of Company</label>
+                                                        <input type="text" class="form-control" name="name_of_company" id="name_of_company" value="@Request.Form["name_of_company"]" @Validation.For("name_of_company") placeholder="Name of Company">
+                                                        @Html.ValidationMessage("name_of_company")
+                                                    </div>
+
+                                                    @{
+                                                        var toyota1 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                        var select1 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                        //var emp1 = "insert into Meeting(whom_to_see)values(@0)";
+
+                                                        var DBS1 = Database.Open("VmApp").Query(select1, toyota1);
+
+                                                        <div class="form-group show2">
+                                                            <label style="color: black; font-size:25px;">Staff</label>
+                                                            <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                <option value=""></option>
+                                                                @foreach (var employee in DBS1)
+                                                                {
+                                                                    <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                }
+                                                            </select>
+
+                                                        </div>
+
+                                                    }
+
+                                                    <div class="form-group text-center show2">
+                                                        <label>&nbsp;</label>
+                                                        <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                    </div>
+                                                    @*Servicing/Maintenance*@
+                                                    <form class="show4" method="post">
+                                                        @{
+
+                                                        }
+                                                        @AntiForgery.GetHtml()
+                                                        @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                        <div class="form-group show4">
+                                                            <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                            <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                            @Html.ValidationMessage("from_where")
+                                                        </div>
+
+
+                                                        @{
+
+                                                            toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                            select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                            //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                            DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                            <div class="form-group show4">
+                                                                <label style="color:black; font-size:25px;">Staff</label>
+                                                                <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                    <option value=""></option>
+                                                                    @foreach (var employee in DBS)
+                                                                    {
+                                                                        <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+
+
+                                                        }
+
+                                                        <div class="form-group text-center show4">
+                                                            <label>&nbsp;</label>
+                                                            <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                        </div>
+
+
+                                                    </form>
+
+                                                </form>
+                                            </form>
+
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Events -->
+                            <div role="tabpanel" class="tab-pane" id="events">
+
+                                <div class="col-md-12">
+                                    <div class="form-wrapper">
+
+                                        <form class="hide-form checkin" method="post">
+
+                                            @message
+
+                                            @AntiForgery.GetHtml()
+                                            @* If at least one validation error exists, notify the user *@
+                                            @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                            <div class="form-group .ui-autocomplete-input ">
+                                                <label for="_name" style="color:black; font-size:25px;">Name*</label>
+                                                <input type="search" class="form-control" name="FullName" id="_event" value="@Request.Form["FullName"]" placeholder="Type your surname and press the down arrow key" autocomplete="off">
+
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="phone_number" @if (!ModelState.IsValidField("phone_number")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Phone no</label>
+
+                                                <input type="text" class="form-control" id="phone_number" name="phone_number" value="@Request.Form["phone_number"]" @Validation.For("phone_number")>
+                                                <span id="spnPhoneStatus"></span>
+                                                @Html.ValidationMessage("phone_number")
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="address" @if (!ModelState.IsValidField("address")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Address</label>
+                                                <input type="text" class="form-control" id="address" name="address" value="@Request.Form[""]" @Validation.For("address")>
+                                                @Html.ValidationMessage("address")
+                                            </div>
+                                            @*dropdown for purpose*@
+                                            <div class="input-group mb-3 form-group" id="purpose">
+                                                <div class="input-group-prepend form-group">
+                                                    <label for="purpose" @if (!ModelState.IsValidField("purpose")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Purpose</label>
+                                                </div>
+                                                <select class="form-control" name="purpose" id="purpose">
+
+
+                                                    <option value="event"> Event</option>
+                                                    <option value="Meeting">Meeting</option>
+                                                    <option value="pickup"> Pickup/Delivery</option>
+                                                    <option value="services"> Services/Maintenance</option>
+                                                </select>
+                                                @Html.ValidationMessage("purpose")
+                                            </div>
+
+
+
+
+                                            <div class="form-group show1">
+                                                <label for="name_of_company" @if (!ModelState.IsValidField("company_name")) { <text> class="error-label" </text> } style="color:black; font-size:25px" ;>Name of Company</label>
+                                                <input type="text" class="form-control" name="name_of_company" id="name_of_company" placeholder="Name of Company" value="@name_of_company" @Validation.For("name_of_company")>
+                                                @Html.ValidationMessage("company_name")
+                                            </div>
+
+                                            <div class="form-group show1">
+                                                <label for="Event" @if (!ModelState.IsValidField("name_of_event")) { <text> class="error-label" </text> } style="color: black; font-size:25px">Name of Event</label>
+                                                <input type="text" class="form-control" id="Event" name="name_of_event" placeholder="Name of Event" value="@name_of_event" @Validation.For("name_of_event")>
+                                                @Html.ValidationMessage("name_of_event")
+                                            </div>
+
+
+
+                                            <div class="form-group text-center show1">
+                                                <label>&nbsp;</label>
+                                                <input type="submit" name="btnInsert" class="btn btn-default" id="checkin" value="Register" />
+                                            </div>
+                                            @*Pickup/Delivery*@
+                                            <form class="show3" method="post">
+                                                @{
+
+                                                }
+                                                @AntiForgery.GetHtml()
+                                                @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                <div class="form-group show3">
+                                                    <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                    <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                    @Html.ValidationMessage("from_where")
+                                                </div>
+
+
+                                                @{
+
+                                                    toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                    select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                    //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                    DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                    <div class="form-group show3">
+                                                        <label style="color:black; font-size:25px;">Staff</label>
+                                                        <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                            <option value=""></option>
+                                                            @foreach (var employee in DBS)
+                                                            {
+                                                                <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+
+
+                                                }
+
+                                                <div class="form-group text-center show3">
+                                                    <label>&nbsp;</label>
+                                                    <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                </div>
+                                                @*meeting*@
+                                                <form class="show2" method="post">
+
+
+                                                    @AntiForgery.GetHtml()
+                                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+
+
+                                                    <div class="form-group show2">
+                                                        <label for="name_of_company" @if (!ModelState.IsValidField("name_of_company")) { <text> class="error-label" </text> } style="color: black; font-size:25px;">Name of Company</label>
+                                                        <input type="text" class="form-control" name="name_of_company" id="name_of_company" value="@Request.Form["name_of_company"]" @Validation.For("name_of_company") placeholder="Name of Company">
+                                                        @Html.ValidationMessage("name_of_company")
+                                                    </div>
+
+                                                    @{
+                                                        toyota1 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                        select1 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                        //var emp1 = "insert into Meeting(whom_to_see)values(@0)";
+
+                                                        DBS1 = Database.Open("VmApp").Query(select1, toyota1);
+
+                                                        <div class="form-group show2">
+                                                            <label style="color: black; font-size:25px;">Staff</label>
+                                                            <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                <option value=""></option>
+                                                                @foreach (var employee in DBS1)
+                                                                {
+                                                                    <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                }
+                                                            </select>
+
+                                                        </div>
+
+                                                    }
+
+                                                    <div class="form-group text-center show2">
+                                                        <label>&nbsp;</label>
+                                                        <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                    </div>
+
+                                                    <form class="show4" method="post">
+                                                        @{
+
+                                                        }
+                                                        @AntiForgery.GetHtml()
+                                                        @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                        <div class="form-group show4">
+                                                            <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                            <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                            @Html.ValidationMessage("from_where")
+                                                        </div>
+
+
+                                                        @{
+
+                                                            toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                            select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                            //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                            DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                            <div class="form-group show4">
+                                                                <label style="color:black; font-size:25px;">Staff</label>
+                                                                <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                    <option value=""></option>
+                                                                    @foreach (var employee in DBS)
+                                                                    {
+                                                                        <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+
+
+                                                        }
+
+                                                        <div class="form-group text-center show4">
+                                                            <label>&nbsp;</label>
+                                                            <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                        </div>
+
+
+                                                    </form>
+
+                                                </form>
+                                            </form>
+
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Services/maintenance -->
+                            <div role="tabpanel" class="tab-pane" id="events">
+
+                                <div class="col-md-12">
+                                    <div class="form-wrapper">
+
+                                  
+                                        <form class="hide-form checkin" method="post">
+
+                                            @message
+
+                                            @AntiForgery.GetHtml()
+                                            @* If at least one validation error exists, notify the user *@
+                                            @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                            <div class="form-group .ui-autocomplete-input ">
+                                                <label for="_name" style="color:black; font-size:25px;">Name*</label>
+                                                <input type="search" class="form-control" name="FullName" id="del" value="@Request.Form["FullName"]" placeholder="Type your surname and press the down arrow key" autocomplete="off">
+
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="phone_number" @if (!ModelState.IsValidField("phone_number")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Phone no</label>
+
+                                                <input type="text" class="form-control" id="phone_number" name="phone_number" value="@Request.Form["phone_number"]" @Validation.For("phone_number")>
+                                                <span id="spnPhoneStatus"></span>
+                                                @Html.ValidationMessage("phone_number")
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="address" @if (!ModelState.IsValidField("address")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Address</label>
+                                                <input type="text" class="form-control" id="address" name="address" value="@Request.Form[""]" @Validation.For("address")>
+                                                @Html.ValidationMessage("address")
+                                            </div>
+                                            @*dropdown for purpose*@
+                                            <div class="input-group mb-3 form-group" id="purpose">
+                                                <div class="input-group-prepend form-group">
+                                                    <label for="purpose" @if (!ModelState.IsValidField("purpose")) { <text> class="error-label" </text> } style="color:black; font-size:25px;">Purpose</label>
+                                                </div>
+                                                <select class="form-control" name="purpose" id="purpose">
+
+
+                                                    <option value="event"> Event</option>
+                                                    <option value="Meeting">Meeting</option>
+                                                    <option value="pickup"> Pickup/Delivery</option>
+                                                </select>
+                                                @Html.ValidationMessage("purpose")
+                                            </div>
+
+
+
+
+                                            <div class="form-group show1">
+                                                <label for="name_of_company" @if (!ModelState.IsValidField("company_name")) { <text> class="error-label" </text> } style="color:black; font-size:25px" ;>Name of Company</label>
+                                                <input type="text" class="form-control" name="name_of_company" id="name_of_company" placeholder="Name of Company" value="@name_of_company" @Validation.For("name_of_company")>
+                                                @Html.ValidationMessage("company_name")
+                                            </div>
+
+                                            <div class="form-group show1">
+                                                <label for="Event" @if (!ModelState.IsValidField("name_of_event")) { <text> class="error-label" </text> } style="color: black; font-size:25px">Name of Event</label>
+                                                <input type="text" class="form-control" id="Event" name="name_of_event" placeholder="Name of Event" value="@name_of_event" @Validation.For("name_of_event")>
+                                                @Html.ValidationMessage("name_of_event")
+                                            </div>
+
+
+
+                                            <div class="form-group text-center show1">
+                                                <label>&nbsp;</label>
+                                                <input type="submit" name="btnInsert" class="btn btn-default" id="checkin" value="Register" />
+                                            </div>
+                                            @*Pickup/Delivery*@
+                                            <form class="show3" method="post">
+                                                @{
+
+                                                }
+                                                @AntiForgery.GetHtml()
+                                                @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                <div class="form-group show3">
+                                                    <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                    <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                    @Html.ValidationMessage("from_where")
+                                                </div>
+
+
+                                                @{
+
+                                                    toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                    select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                    //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                    DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                    <div class="form-group show3">
+                                                        <label style="color:black; font-size:25px;">Staff</label>
+                                                        <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                            <option value=""></option>
+                                                            @foreach (var employee in DBS)
+                                                            {
+                                                                <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+
+
+                                                }
+
+                                                <div class="form-group text-center show3">
+                                                    <label>&nbsp;</label>
+                                                    <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                </div>
+                                                @*meeting*@
+                                                <form class="show2" method="post">
+
+
+                                                    @AntiForgery.GetHtml()
+                                                    @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+
+
+                                                    <div class="form-group show2">
+                                                        <label for="name_of_company" @if (!ModelState.IsValidField("name_of_company")) { <text> class="error-label" </text> } style="color: black; font-size:25px;">Name of Company</label>
+                                                        <input type="text" class="form-control" name="name_of_company" id="name_of_company" value="@Request.Form["name_of_company"]" @Validation.For("name_of_company") placeholder="Name of Company">
+                                                        @Html.ValidationMessage("name_of_company")
+                                                    </div>
+
+                                                    @{
+                                                        toyota1 = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                        select1 = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                        //var emp1 = "insert into Meeting(whom_to_see)values(@0)";
+
+                                                        DBS1 = Database.Open("VmApp").Query(select1, toyota1);
+
+                                                        <div class="form-group show2">
+                                                            <label style="color: black; font-size:25px;">Staff</label>
+                                                            <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                <option value=""></option>
+                                                                @foreach (var employee in DBS1)
+                                                                {
+                                                                    <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                }
+                                                            </select>
+
+                                                        </div>
+
+                                                    }
+
+                                                    <div class="form-group text-center show2">
+                                                        <label>&nbsp;</label>
+                                                        <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                    </div>
+
+                                                    <form class="show4" method="post">
+                                                        @{
+
+                                                        }
+                                                        @AntiForgery.GetHtml()
+                                                        @Html.ValidationSummary("Account creation was unsuccessful. Please correct the errors and try again.", excludeFieldErrors: true, htmlAttributes: null)
+
+                                                        <div class="form-group show4">
+                                                            <label for="from_where" @if (!ModelState.IsValidField("from_where")) { <text> class="error-label" </text> } style="color: black; font-size:25px">From Where</label>
+                                                            <input type="text" class="form-control" name="name_of_company" id="from_where" placeholder="From Where" value="@name_of_company" @Validation.For("from_where")>
+                                                            @Html.ValidationMessage("from_where")
+                                                        </div>
+
+
+                                                        @{
+
+                                                            toyota = "SELECT EmailAddress FROM Employee ORDER BY EmailAddress";
+                                                            select = "SELECT FullName, EmailAddress From Employee ORDER BY EmailAddress";
+                                                            //var emp = "insert into meeting(whom_to_see)values(@0)";
+
+                                                            DBS = Database.Open("VmApp").Query(select, toyota);
+
+
+                                                            <div class="form-group show4">
+                                                                <label style="color:black; font-size:25px;">Staff</label>
+                                                                <select class="form-control" name="EmailAddress" id="EmailAddress">
+                                                                    <option value=""></option>
+                                                                    @foreach (var employee in DBS)
+                                                                    {
+                                                                        <option value="@employee.EmailAddress">@employee.FullName</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+
+
+                                                        }
+
+                                                        <div class="form-group text-center show4">
+                                                            <label>&nbsp;</label>
+                                                            <input type="submit" name="btnInsert" value="Register" id="checkin" class="btn btn-default" />
+                                                        </div>
+
+
+                                                    </form>
+
+                                                </form>
+                                            </form>
+
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Modal for sucess -->
+            <!-- Modal -->
+            <span data-toggle="modal" data-target="#myModal3"><h4></h4></span>
+
+
+            <div class="modal fade modal-checkin" id="myModal3" tabindex="-1" role="dialog" aria-labelledby="myModal3Label">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                            <h4 class="modal-title" id="myModal3Label">Check In</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="sucess-alert text-center">
+                                <h1>Success</h1>
+                                <i class="fa fa-check fa-5x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal for sucess end -->
+            <link href="~/Content/themes/base/autocomplete.css" rel="stylesheet" />
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+            <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+
+            <script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.10.4/jquery-ui.js"></script>
+
+
+
+            <script src="~/bootstrap/js/bootstrap.min.js"></script>
+            <script src="js/main.js"></script>
+
+            <script>
+                //$(function () {
+                //    $('#_name').autocomplete({ source: '/Index/' });
+                //});
+
+                $(document).ready(function () {
+                    $('#phone_number').blur(function (e) {
+                        if (validatePhone('phone_number')) {
+                            $('#spnPhoneStatus').html('Valid');
+                            $('#spnPhoneStatus').css('color', 'green');
+                        }
+                        else {
+                            $('#spnPhoneStatus').html('Invalid');
+                            $('#spnPhoneStatus').css('color', 'red');
+                        }
+                    });
+                });
+
+                function validatePhone(phone_number) {
+                    var a = document.getElementById(phone_number).value;
+                    var filter = /^\(?([0-9]{2})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{3}[-. ]?([0-9]{3}))$/;
+                    if (filter.test(a)) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                //function of autocomplete on the meeting form
+                $(document).ready(function () {
+                    $(function () {
+                        $('#_name').autocomplete({ source: '/GetName/' }).focus(function () {
+                            if ($(this).autocomplete("widget").is(":visible")) {
+                                return;
+                            }
+                            $(this).data("autocomplete").search($(this).val());
+
+                        });
+                    });
+                });
+
+                $(document).ready(function () {
+                    $(function () {
+                        $('#_names').autocomplete({ source: '/GetName/' }).focus(function () {
+                            if ($(this).autocomplete("widget").is(":visible")) {
+                                return;
+                            }
+                            $(this).data("autocomplete").search($(this).val());
+
+                        });
+                    });
+                });
+
+                //function of autocomplete on the Delivery form
+                $(document).ready(function () {
+                    $(function () {
+                        $('#del').autocomplete({ source: '/GetName/' }).focus(function () {
+                            if ($(this).autocomplete("widget").is(":visible")) {
+                                return;
+                            }
+                            $(this).data("autocomplete").search($(this).val());
+
+                        });
+                    });
+                });
+
+                $(document).ready(function () {
+                    $(function () {
+                        $('#_event').autocomplete({ source: '/GetName/' }).focus(function () {
+                            if ($(this).autocomplete("widget").is(":visible")) {
+                                return;
+                            }
+                            $(this).data("autocomplete").search($(this).val());
+
+                        });
+                    });
+                });
+
+
+                let imageSlider = document.querySelector('.main');
+                let sliderArray = ['./img/car1.png', './img/car2.png', './img/car3.png'];
+                let count = 0;
+
+                setInterval(function () {
+                    if (count >= sliderArray.length) {
+                        count = 0;
+                    }
+                    imageSlider.style.backgroundImage = "url(" + sliderArray[count] + ")";
+                    imageSlider.style.transition = "2s ease";
+
+                    count++;
+                }, 3000);
+
+                $('select[name="purpose"]').on('change', function () {
+
+                    if ($(this).val() == "event") {
+                        $('.show2').hide();
+                        $('.show3').hide();
+                        $('.show4').hide();
+                        $('.show1').show();
+                    } else if ($(this).val() == "pickup") {
+                        $('.show1').hide();
+                        $('.show2').hide();
+                        $('.show4').hide();
+                        $('.show3').show();
+                    }
+                    else if ($(this).val() == "Meeting") {
+                        $('.show2').show();
+                        $('.show1').hide();
+                        $('.show3').hide();
+                        $('.show4').hide();
+                    } else {
+                        $('.show2').hide();
+                        $('.show1').hide();
+                        $('.show3').hide();
+                        $('.show4').show();
+                    }
+                });
+
+
+
+
+            </script>
+
+
+      
+    </body>
+</html>
